@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         bilibili消息一键已读
 // @namespace    http://tampermonkey.net/
-// @version      1.0.1
+// @version      1.0.2
 // @description  一键设置消息已读。
 // @author       monSteRhhe
 // @match        http*://message.bilibili.com/*
@@ -105,6 +105,7 @@
                             image: 'https://www.bilibili.com/favicon.ico',
                             timeout: 2000,
                         });
+                        break;
                     }
                 }
             }
