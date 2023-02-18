@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         bilibili消息一键已读
 // @namespace    http://tampermonkey.net/
-// @version      23.02.15
+// @version      23.02.18
 // @description  一键设置消息已读。
 // @author       monSteRhhe
 // @match        http*://message.bilibili.com/*
@@ -17,7 +17,7 @@
 (function() {
     'use strict';
 
-    // 添加按钮
+    // 添加触发
     GM_addStyle('\
         .msgread {\
             color: #6b757b;\
@@ -37,9 +37,10 @@
     })
 
     // 监控点击
-    $(document).on('click', 'div.msgread', function() {
-        if(UnreadNum() > 0) {
-            MsgSessions('')
+    $(document).on('click', 'div.msgread', async() => {
+        await UnreadNum();
+        if(unread_count > 0) {
+            MsgSessions('');
         } else {
             GM_notification({
                 text: '消息全部已读。',
@@ -51,19 +52,16 @@
     })
 
     // 未读数
-    function UnreadNum() {
-        var api = 'https://api.vc.bilibili.com/session_svr/v1/session_svr/single_unread';
+    async function UnreadNum() {
         var num = 0;
-
-        axios({
-            url: api,
+        await axios({
+            url: 'https://api.vc.bilibili.com/session_svr/v1/session_svr/single_unread?unread_type=0&show_dustbin=1&build=0&mobi_app=web',
             withCredentials: true // 跨域使用凭证
         })
         .then(function(response) {
-            num = response.data.data.unfollow_unread + response.data.data.follow_unread;
+            num = response.data.data.unfollow_unread + response.data.data.follow_unread; // 未读消息总数
         })
-
-        return num;
+        window.unread_count = num;
     }
 
     // 获取消息
@@ -79,16 +77,17 @@
             url: api,
             withCredentials: true // 跨域使用凭证
         })
-        .then(function(response) {
+        .then(async(response) => {
             var session_list = response.data.data.session_list;
             for(var i = 0; i < session_list.length; i++) {
                 if(session_list[i].unread_count > 0) {
                     var ti = session_list[i].talker_id;
                     var as = session_list[i].ack_seqno;
                     var bj = GetCookie();
-                        MsgRead(ti, as, bj);
-                    }
-                if(UnreadNum() > 0) {
+                    MsgRead(ti, as, bj);
+                }
+                await UnreadNum();
+                if(unread_count > 0) {
                     if(i == session_list.length - 1) {
                         var endts = session_list[i].session_ts;
                         MsgSessions(endts);
@@ -109,7 +108,6 @@
     // 设置已读
     function MsgRead(ti, as, bj) {
         var api = 'https://api.vc.bilibili.com/session_svr/v1/session_svr/update_ack?talker_id=' + ti + '&session_type=1&ack_seqno=' + as + '&build=0&mobi_app=web&csrf_token=' + bj +'&csrf=' + bj;
-
         axios({
             method: 'post',
             url: api,
@@ -120,7 +118,6 @@
     // 获取bili_jct
     function GetCookie() {
         var cookieArr = document.cookie.split(';');
-
         for(var i = 0; i < cookieArr.length; i++) {
             if(cookieArr[i].split('=')[0] == ' bili_jct') {
                 var value = cookieArr[i].split('=')[1];
