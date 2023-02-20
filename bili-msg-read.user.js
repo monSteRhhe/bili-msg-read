@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         bilibili消息一键已读
 // @namespace    http://tampermonkey.net/
-// @version      23.02.18
+// @version      23.02.20
 // @description  一键设置消息已读。
 // @author       monSteRhhe
 // @match        http*://message.bilibili.com/*
@@ -18,17 +18,17 @@
     'use strict';
 
     // 添加触发
-    GM_addStyle('\
-        .msgread {\
-            color: #6b757b;\
-            position: relative;\
-            line-height: 2rem;\
-            cursor: pointer;\
-        }\
-        .msgread:hover {\
-            color: #00a0d8;\
-        }\
-    ')
+    GM_addStyle(`
+        .msgread {
+            color: #6b757b;
+            position: relative;
+            line-height: 2rem;
+            cursor: pointer;
+        }
+        .msgread:hover {
+            color: #00a0d8;
+        }
+    `)
 
     document.getElementsByClassName('container')[0].addEventListener('DOMNodeInserted', function() {
         if(document.getElementsByClassName('msgread')[0] == null) {
